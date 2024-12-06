@@ -3,7 +3,8 @@ user=$(whoami)
 script_directory=/home/$USER/Desktop/scripts
 
 # Đoạn mã cần thêm vào .bashrc
-CUSTOM_SCRIPTS="# <<< Custom Scripts >>>
+CUSTOM_SCRIPTS="
+# <<< Custom Scripts >>>
 alias sudo='sudo '
 script_directory=$script_directory
 for script_file in \"\$script_directory\"/*; do
