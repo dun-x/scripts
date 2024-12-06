@@ -29,7 +29,7 @@ if [ -z "$chosen_dir" ]; then
 fi
 
 mkdir -p "$backup_folder"
-archive_name="$(basename "$chosen_dir").tar.gz"
+archive_name="$(basename "$chosen_dir")_$timestamp.tar.gz"
 sudo tar -cvpzf "$backup_folder/$archive_name" -C "$chosen_dir" .
 sudo chown dunx:dunx "$backup_folder/$archive_name"
 echo "Archive created at $backup_folder/$archive_name"
