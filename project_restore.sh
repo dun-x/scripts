@@ -29,7 +29,8 @@ if [ -z "$chosen_file" ]; then
 fi
 
 chosen_file_name="$(basename "$chosen_file" .tar.gz)"
-project_dir="$project_folder/$chosen_file_name"
+truncated_name=$(echo "$chosen_file_name" | cut -c 1-$((${#chosen_file_name}-16)))
+project_dir="$project_folder/$truncated_name"
 old_project_dir="${project_dir}_${timestamp}"
 
 if [ -d "$project_dir" ]; then
