@@ -28,8 +28,20 @@ if [ -z "$chosen_dir" ]; then
     exit 1
 fi
 
+# Check for docker-compose.yml and stop containers if found
+if [ -f "$chosen_dir/docker-compose.yml" ]; then
+    sudo docker compose -f "$chosen_dir/docker-compose.yml" stop
+    echo "Docker containers stopped."
+fi
+
 mkdir -p "$backup_folder"
 archive_name="$(basename "$chosen_dir")_$timestamp.tar.gz"
 sudo tar -cvpzf "$backup_folder/$archive_name" -C "$chosen_dir" .
 sudo chown dunx:dunx "$backup_folder/$archive_name"
 echo "Archive created at $backup_folder/$archive_name"
+
+# Check for docker-compose.yml and stop containers if found
+if [ -f "$chosen_dir/docker-compose.yml" ]; then
+    sudo docker compose -f "$chosen_dir/docker-compose.yml" start
+    echo "Docker containers started"
+fi
