@@ -29,8 +29,18 @@ if [ -z "$chosen_file" ]; then
 fi
 
 chosen_file_name="$(basename "$chosen_file" .tar.gz)"
-truncated_name=$(echo "$chosen_file_name" | cut -c 1-$((${#chosen_file_name}-16)))
-project_dir="$project_folder/$truncated_name"
+project_name=$(echo "$chosen_file_name" | cut -d'_' -f1)
+
+# Prompt user for project name, with the calculated name as default
+read -p "Enter project name (default: $project_name): " user_provided_name
+
+# Use the user-provided name if it's not empty, otherwise use the calculated name
+if [ -n "$user_provided_name" ]; then
+    project_name="$user_provided_name"
+fi
+
+
+project_dir="$project_folder/$project_name"
 old_project_dir="${project_dir}_${timestamp}"
 
 if [ -d "$project_dir" ]; then

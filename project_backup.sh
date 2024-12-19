@@ -22,26 +22,26 @@ done
 read -p "Enter the identifier of the directory you want to choose: " chosen_identifier
 
 # Step 3: Determine the chosen directory and create a compressed archive
-chosen_dir="${subdirs[$chosen_identifier]}"
-if [ -z "$chosen_dir" ]; then
+project_dir="${subdirs[$chosen_identifier]}"
+if [ -z "$project_dir" ]; then
     echo "Invalid identifier. Exiting."
     exit 1
 fi
 
 # Check for docker-compose.yml and stop containers if found
-if [ -f "$chosen_dir/docker-compose.yml" ]; then
-    sudo docker compose -f "$chosen_dir/docker-compose.yml" stop
+if [ -f "$project_dir/docker-compose.yml" ]; then
+    sudo docker compose -f "$project_dir/docker-compose.yml" stop
     echo "Docker containers stopped."
 fi
 
 mkdir -p "$backup_folder"
-archive_name="$(basename "$chosen_dir")_$timestamp.tar.gz"
-sudo tar -cvpzf "$backup_folder/$archive_name" -C "$chosen_dir" .
+archive_name="$(basename "$project_dir")_"$timestamp"_$(hostname).tar.gz"
+sudo tar -cvpzf "$backup_folder/$archive_name" -C "$project_dir" .
 sudo chown dunx:dunx "$backup_folder/$archive_name"
 echo "Archive created at $backup_folder/$archive_name"
 
 # Check for docker-compose.yml and stop containers if found
-if [ -f "$chosen_dir/docker-compose.yml" ]; then
-    sudo docker compose -f "$chosen_dir/docker-compose.yml" start
+if [ -f "$project_dir/docker-compose.yml" ]; then
+    sudo docker compose -f "$project_dir/docker-compose.yml" start
     echo "Docker containers started"
 fi
