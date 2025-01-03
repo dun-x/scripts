@@ -28,12 +28,16 @@ if [ -z "$project_dir" ]; then
     exit 1
 fi
 
-# Check for docker-compose.yml and stop containers if found
+# Lấy danh sách các container đang chạy:
+#running_containers=$(docker ps -q)
+running_containers=$(docker compose -f "$project_dir/docker-compose.yml" ps --format "{{.Name}}")
+# Tắt các container liên quan đang chạy
 if [ -f "$project_dir/docker-compose.yml" ]; then
     sudo docker compose -f "$project_dir/docker-compose.yml" stop
     echo "Docker containers stopped."
 fi
 
+# Tạo backup
 mkdir -p "$backup_folder"
 archive_name="$(basename "$project_dir")_"$timestamp"_$(hostname).tar.gz"
 
@@ -44,10 +48,11 @@ else
 fi
 
 sudo chown dunx:dunx "$backup_folder/$archive_name"
-echo "Archive created at $backup_folder/$ls -archive_name"
+echo "Archive created at $backup_folder/$archive_name"
 
-# Check for docker-compose.yml and stop containers if found
-if [ -f "$project_dir/docker-compose.yml" ]; then
-    sudo docker compose -f "$project_dir/docker-compose.yml" start
-    echo "Docker containers started"
+# Khởi động lại các container đã chạy trước đó
+if [ -n "$running_containers" ]; then
+  for container_id in $running_containers; do
+    docker compose -f "$project_dir/docker-compose.yml" start $container_id
+  done
 fi
