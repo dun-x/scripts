@@ -36,9 +36,15 @@ fi
 
 mkdir -p "$backup_folder"
 archive_name="$(basename "$project_dir")_"$timestamp"_$(hostname).tar.gz"
-sudo tar -cvpzf "$backup_folder/$archive_name" -C "$project_dir" .
+
+if [ -f "$project_dir/.bk_ignore" ]; then
+    sudo tar -cvpzf "$backup_folder/$archive_name" -C "$project_dir" --exclude-from="$project_dir/.bk_ignore" .
+else
+    sudo tar -cvpzf "$backup_folder/$archive_name" -C "$project_dir" .
+fi
+
 sudo chown dunx:dunx "$backup_folder/$archive_name"
-echo "Archive created at $backup_folder/$archive_name"
+echo "Archive created at $backup_folder/$ls -archive_name"
 
 # Check for docker-compose.yml and stop containers if found
 if [ -f "$project_dir/docker-compose.yml" ]; then
