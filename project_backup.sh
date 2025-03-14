@@ -53,6 +53,7 @@ echo "Archive created at $backup_folder/$archive_name"
 # Khởi động lại các container đã chạy trước đó
 if [ -n "$running_containers" ]; then
   for container_id in $running_containers; do
-    docker compose -f "$project_dir/docker-compose.yml" start $container_id
+#    docker compose -f "$project_dir/docker-compose.yml" start $container_id
+    docker start $container_id
   done
 fi
