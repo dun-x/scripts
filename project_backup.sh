@@ -1,31 +1,43 @@
 #!/bin/bash
 user=$(whoami)
-source /home/$USER/Desktop/scripts/parameter.sh
+source /home/$USER/Desktop/scripts/.env
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
 
-# Step 1: Display all subdirectories' names of the Project folder with assigned identifiers
-echo "List of subdirectories in Project:"
-declare -A subdirs
-identifier=1
+# Step 1: User inputs a custom path, or hits Enter to choose from existing directories
+read -p "Enter the path of the directory you want to backup (press Enter to scan and choose from a list): " custom_path
 
-for dir in "$project_folder"/*; do
-    if [ -d "$dir" ]; then
-        subdirs["$identifier"]="$dir"
-        dir_name="$(basename "$dir")"
-        echo "$identifier: $dir_name"
-        ((identifier++))
+if [ -n "$custom_path" ]; then
+    if [ -d "$custom_path" ]; then
+        project_dir="$custom_path"
+    else
+        echo "Invalid directory path. Exiting."
+        exit 1
     fi
-done
+else
+    # Display all subdirectories' names of the Project folder with assigned identifiers
+    echo "List of subdirectories in Project:"
+    declare -A subdirs
+    identifier=1
 
-# Step 2: User inputs an identifier
-read -p "Enter the identifier of the directory you want to choose: " chosen_identifier
+    for dir in "$project_folder"/*; do
+        if [ -d "$dir" ]; then
+            subdirs["$identifier"]="$dir"
+            dir_name="$(basename "$dir")"
+            echo "$identifier: $dir_name"
+            ((identifier++))
+        fi
+    done
 
-# Step 3: Determine the chosen directory and create a compressed archive
-project_dir="${subdirs[$chosen_identifier]}"
-if [ -z "$project_dir" ]; then
-    echo "Invalid identifier. Exiting."
-    exit 1
+    # User inputs an identifier
+    read -p "Enter the identifier of the directory you want to choose: " chosen_identifier
+
+    # Determine the chosen directory and create a compressed archive
+    project_dir="${subdirs[$chosen_identifier]}"
+    if [ -z "$project_dir" ]; then
+        echo "Invalid identifier. Exiting."
+        exit 1
+    fi
 fi
 
 # Lấy danh sách các container đang chạy:
