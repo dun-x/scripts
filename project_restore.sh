@@ -1,6 +1,6 @@
 #!/bin/bash
 user=$(whoami)
-source /home/$USER/Desktop/scripts/parameter.sh
+source /home/$USER/Desktop/scripts/.env
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
 
@@ -9,6 +9,7 @@ echo "List of *.tar.gz files in Sync directory:"
 declare -A files
 identifier=1
 
+shopt -s dotglob nullglob
 for file in "$backup_folder"/*.tar.gz; do
     if [ -f "$file" ]; then
         files["$identifier"]="$file"
@@ -17,6 +18,7 @@ for file in "$backup_folder"/*.tar.gz; do
         ((identifier++))
     fi
 done
+shopt -u dotglob nullglob
 
 # Step 2: User inputs an identifier
 read -p "Enter the identifier of the file you want to choose: " chosen_identifier
@@ -31,16 +33,16 @@ fi
 chosen_file_name="$(basename "$chosen_file" .tar.gz)"
 project_name=$(echo "$chosen_file_name" | cut -d'_' -f1)
 
-# Prompt user for project name, with the calculated name as default
-read -p "Enter project name (default: $project_name): " user_provided_name
+# Propose extraction path to user
+default_project_dir="$project_folder/$project_name"
+read -p "Enter extraction path (default: $default_project_dir): " user_provided_path
 
-# Use the user-provided name if it's not empty, otherwise use the calculated name
-if [ -n "$user_provided_name" ]; then
-    project_name="$user_provided_name"
+# Use the user-provided path if it's not empty, otherwise use the calculated path
+if [ -n "$user_provided_path" ]; then
+    project_dir="$user_provided_path"
+else
+    project_dir="$default_project_dir"
 fi
-
-
-project_dir="$project_folder/$project_name"
 old_project_dir="${project_dir}_${timestamp}"
 
 if [ -d "$project_dir" ]; then

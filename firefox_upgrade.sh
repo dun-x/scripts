@@ -1,6 +1,4 @@
 #!/bin/bash
-user=$(whoami)
-source /home/$USER/Desktop/scripts/parameter.sh
 
 # Step 1: Display all *.tar.gz files in Sync directory with assigned identifiers
 echo "List of *.tar.bz2 files in Sync directory:"
