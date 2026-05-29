@@ -44,7 +44,7 @@ sudo chmod 0755 /opt/headscale-vps02-routes/approve-vps02-routes.sh
 sudo /opt/headscale-vps02-routes/approve-vps02-routes.sh
 ```
 
-Neu `--identifier vps02` khong dung voi version Headscale hien tai:
+Mac dinh script se tu resolve `NODE_IDENTIFIER=vps02` thanh ID so cua node trong Headscale. Neu can chi dinh ID thu cong:
 
 ```bash
 docker exec headscale headscale nodes list

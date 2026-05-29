@@ -12,6 +12,57 @@ if [ ! -r "$CONFIG" ]; then
   exit 1
 fi
 
+resolve_node_id() {
+  node_identifier="$1"
+
+  if printf '%s\n' "$node_identifier" | grep -Eq '^[0-9]+$'; then
+    printf '%s\n' "$node_identifier"
+    return
+  fi
+
+  json="$(
+    docker exec "$CONTAINER" headscale nodes list -o json 2>/dev/null || true
+  )"
+  if [ -n "$json" ]; then
+    node_id="$(
+      printf '%s\n' "$json" |
+        tr '\n' ' ' |
+        sed 's/}[[:space:]]*,[[:space:]]*{/}\
+{/g' |
+        awk -v wanted="$node_identifier" 'index($0, "\"" wanted "\"") { print; exit }' |
+        sed -n 's/.*"id"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p'
+    )"
+
+    if [ -n "$node_id" ]; then
+      printf '%s\n' "$node_id"
+      return
+    fi
+  fi
+
+  node_id="$(
+    docker exec "$CONTAINER" headscale nodes list |
+      awk -v wanted="$node_identifier" '
+        $0 ~ wanted {
+          for (i = 1; i <= NF; i++) {
+            if ($i ~ /^[0-9]+$/) {
+              print $i
+              exit
+            }
+          }
+        }
+      '
+  )"
+
+  if [ -z "$node_id" ]; then
+    echo "Could not resolve node identifier '$node_identifier' to a numeric Headscale node ID" >&2
+    echo "Run: docker exec $CONTAINER headscale nodes list" >&2
+    echo "Then retry with: NODE_IDENTIFIER=<ID_CUA_VPS02> $0" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$node_id"
+}
+
 mapfile -t domains < <(awk -F= '/^DOMAIN=/{print $2}' "$CONFIG" | sed '/^$/d')
 mapfile -t manual_routes < <(awk -F= '/^ROUTE=/{print $2}' "$CONFIG" | sed '/^$/d')
 
@@ -29,7 +80,9 @@ if [ -z "$routes" ]; then
   exit 1
 fi
 
-echo "Approving routes for $NODE_IDENTIFIER: $routes"
+NODE_ID="$(resolve_node_id "$NODE_IDENTIFIER")"
+
+echo "Approving routes for $NODE_IDENTIFIER (ID: $NODE_ID): $routes"
 docker exec "$CONTAINER" headscale nodes approve-routes \
-  --identifier "$NODE_IDENTIFIER" \
+  --identifier "$NODE_ID" \
   --routes "$routes"
