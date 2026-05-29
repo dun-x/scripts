@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG="${1:-/etc/tailscale-routes/via-vps02.conf}"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+CONFIG="${1:-$SCRIPT_DIR/via-vps02.conf}"
 
 if [ ! -r "$CONFIG" ]; then
   echo "Missing or unreadable config: $CONFIG" >&2

@@ -2,6 +2,8 @@
 
 Scripts nay dung cho setup Headscale Docker tren `vps01`, route mot so domain/IP rieng qua node `vps02`.
 
+Mac dinh moi script doc config `via-vps02.conf` nam cung thu muc voi chinh file script. Van co the truyen path config rieng lam argument dau tien neu can.
+
 ## Files
 
 - `via-vps02.conf.example`: config mau.
@@ -11,10 +13,10 @@ Scripts nay dung cho setup Headscale Docker tren `vps01`, route mot so domain/IP
 ## Cai tren vps02
 
 ```bash
-sudo mkdir -p /etc/tailscale-routes
-sudo cp via-vps02.conf.example /etc/tailscale-routes/via-vps02.conf
-sudo install -m 0755 update-vps02-routes.sh /usr/local/sbin/update-vps02-routes.sh
-sudo /usr/local/sbin/update-vps02-routes.sh
+sudo mkdir -p /opt/headscale-vps02-routes
+sudo cp update-vps02-routes.sh via-vps02.conf /opt/headscale-vps02-routes/
+sudo chmod 0755 /opt/headscale-vps02-routes/update-vps02-routes.sh
+sudo /opt/headscale-vps02-routes/update-vps02-routes.sh
 ```
 
 Bat forwarding va NAT:
@@ -36,22 +38,22 @@ sudo iptables -t nat -C POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || \
 Copy cung file config sang `vps01`, roi cai script approve:
 
 ```bash
-sudo mkdir -p /etc/tailscale-routes
-sudo cp via-vps02.conf.example /etc/tailscale-routes/via-vps02.conf
-sudo install -m 0755 approve-vps02-routes.sh /usr/local/sbin/approve-vps02-routes.sh
-sudo /usr/local/sbin/approve-vps02-routes.sh
+sudo mkdir -p /opt/headscale-vps02-routes
+sudo cp approve-vps02-routes.sh via-vps02.conf /opt/headscale-vps02-routes/
+sudo chmod 0755 /opt/headscale-vps02-routes/approve-vps02-routes.sh
+sudo /opt/headscale-vps02-routes/approve-vps02-routes.sh
 ```
 
 Neu `--identifier vps02` khong dung voi version Headscale hien tai:
 
 ```bash
 docker exec headscale headscale nodes list
-sudo NODE_IDENTIFIER=<ID_CUA_VPS02> /usr/local/sbin/approve-vps02-routes.sh
+sudo NODE_IDENTIFIER=<ID_CUA_VPS02> /opt/headscale-vps02-routes/approve-vps02-routes.sh
 ```
 
 ## Them domain/IP
 
-Sua `/etc/tailscale-routes/via-vps02.conf` tren ca `vps02` va `vps01`.
+Sua `via-vps02.conf` trong thu muc script tren ca `vps02` va `vps01`.
 
 ```bash
 DOMAIN=makeuseof.com
@@ -72,13 +74,13 @@ Luu y: `tailscale set --advertise-routes=...` thay the toan bo danh sach route d
 Tren `vps02`:
 
 ```cron
-*/30 * * * * /usr/local/sbin/update-vps02-routes.sh >/var/log/update-vps02-routes.log 2>&1
+*/30 * * * * /opt/headscale-vps02-routes/update-vps02-routes.sh >/var/log/update-vps02-routes.log 2>&1
 ```
 
 Tren `vps01`:
 
 ```cron
-1,31 * * * * /usr/local/sbin/approve-vps02-routes.sh >/var/log/approve-vps02-routes.log 2>&1
+1,31 * * * * /opt/headscale-vps02-routes/approve-vps02-routes.sh >/var/log/approve-vps02-routes.log 2>&1
 ```
 
 ## Test tu client
