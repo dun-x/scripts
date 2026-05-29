@@ -24,14 +24,35 @@ resolve_node_id() {
     docker exec "$CONTAINER" headscale nodes list -o json 2>/dev/null || true
   )"
   if [ -n "$json" ]; then
-    node_id="$(
-      printf '%s\n' "$json" |
-        tr '\n' ' ' |
-        sed 's/}[[:space:]]*,[[:space:]]*{/}\
+    node_id=""
+
+    if command -v jq >/dev/null 2>&1; then
+      node_id="$(
+        printf '%s\n' "$json" |
+          jq -r --arg wanted "$node_identifier" '
+            (if type == "array" then . else (.nodes // .machines // []) end)
+            | .[]
+            | select(
+                (.name // "") == $wanted
+                or (.given_name // "") == $wanted
+                or (.hostname // "") == $wanted
+              )
+            | (.id // .ID)
+          ' 2>/dev/null |
+          awk 'NF { print; exit }'
+      )"
+    fi
+
+    if [ -z "$node_id" ]; then
+      node_id="$(
+        printf '%s\n' "$json" |
+          tr '\n' ' ' |
+          sed 's/}[[:space:]]*,[[:space:]]*{/}\
 {/g' |
-        awk -v wanted="$node_identifier" 'index($0, "\"" wanted "\"") { print; exit }' |
-        sed -n 's/.*"id"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p'
-    )"
+          awk -v wanted="$node_identifier" 'index($0, "\"" wanted "\"") { print; exit }' |
+          sed -n 's/^[^{]*{[[:space:]]*"id"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p'
+      )"
+    fi
 
     if [ -n "$node_id" ]; then
       printf '%s\n' "$node_id"
