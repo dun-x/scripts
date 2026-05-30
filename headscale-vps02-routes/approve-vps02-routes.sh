@@ -86,6 +86,16 @@ resolve_node_id() {
 
 mapfile -t domains < <(awk -F= '/^DOMAIN=/{print $2}' "$CONFIG" | sed '/^$/d')
 mapfile -t manual_routes < <(awk -F= '/^ROUTE=/{print $2}' "$CONFIG" | sed '/^$/d')
+exit_node="$(
+  awk -F= '
+    /^EXIT_NODE=/ {
+      value = tolower($2)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "$CONFIG"
+)"
 
 routes="$(
   {
@@ -93,6 +103,11 @@ routes="$(
       getent ahostsv4 "$domain" | awk '{print $1}' | sed 's#$#/32#'
     done
     printf '%s\n' "${manual_routes[@]}"
+    case "$exit_node" in
+      1|true|yes|on)
+        printf '%s\n' "0.0.0.0/0" "::/0"
+        ;;
+    esac
   } | awk 'NF' | sort -u | paste -sd, -
 )"
 

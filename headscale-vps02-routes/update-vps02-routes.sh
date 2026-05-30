@@ -12,6 +12,16 @@ fi
 
 mapfile -t domains < <(awk -F= '/^DOMAIN=/{print $2}' "$CONFIG" | sed '/^$/d')
 mapfile -t manual_routes < <(awk -F= '/^(ROUTE|EXTRA_ROUTE)=/{print $2}' "$CONFIG" | sed '/^$/d')
+exit_node="$(
+  awk -F= '
+    /^EXIT_NODE=/ {
+      value = tolower($2)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "$CONFIG"
+)"
 
 resolved_routes="$(
   {
@@ -35,3 +45,10 @@ fi
 
 echo "Advertising routes: $routes"
 sudo tailscale set --advertise-routes="$routes"
+
+case "$exit_node" in
+  1|true|yes|on)
+    echo "Advertising exit node routes: 0.0.0.0/0, ::/0"
+    sudo tailscale set --advertise-exit-node
+    ;;
+esac

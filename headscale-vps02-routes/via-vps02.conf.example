@@ -8,6 +8,10 @@ DOMAIN=www.makeuseof.com
 # ROUTE=1.2.3.4/32
 # ROUTE=8.8.8.0/24
 
+# Also advertise and approve vps02 as an exit node.
+# This adds 0.0.0.0/0 and ::/0 on Headscale.
+# EXIT_NODE=true
+
 # Existing routes that vps02 must keep advertising, if any.
 # These are included by update-vps02-routes.sh but ignored by approve-vps02-routes.sh
 # unless also listed as ROUTE.

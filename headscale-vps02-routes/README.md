@@ -65,9 +65,11 @@ DOMAIN=example.com
 ROUTE=1.2.3.4/32
 ROUTE=8.8.8.0/24
 EXTRA_ROUTE=192.168.50.0/24
+EXIT_NODE=true
 ```
 
 `DOMAIN=` se duoc resolve thanh IPv4 `/32`. `ROUTE=` la route can advertise va approve. `EXTRA_ROUTE=` chi de `vps02` tiep tuc advertise route co san, khong auto approve tren `vps01`.
+`EXIT_NODE=true` bat `vps02` thanh exit node; script tren `vps02` se goi `tailscale set --advertise-exit-node`, script tren `vps01` se approve them `0.0.0.0/0` va `::/0`.
 
 Luu y: `tailscale set --advertise-routes=...` thay the toan bo danh sach route dang advertise cua `vps02`, nen route nao muon giu phai nam trong config.
 
