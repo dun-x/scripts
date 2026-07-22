@@ -158,11 +158,15 @@ cmd_system() {
   fi
 
   if command -v snap >/dev/null 2>&1; then
-    log "Snap refresh"
-    if pgrep -x snap-store >/dev/null 2>&1; then
-      run_cmd "${sudo[@]}" killall snap-store
+    if snap list snap-store >/dev/null 2>&1; then
+      log "Snap refresh"
+      if pgrep -x snap-store >/dev/null 2>&1; then
+        run_cmd "${sudo[@]}" killall snap-store
+      fi
+      run_cmd "${sudo[@]}" snap refresh snap-store
+    else
+      printf 'snap-store not installed; skipping Snap Store refresh.\n' >&2
     fi
-    run_cmd "${sudo[@]}" snap refresh snap-store
   fi
 }
 
