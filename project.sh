@@ -63,7 +63,7 @@ infer_project_name() {
 restart_backup_services() {
   if [[ "$BACKUP_STOPPED_COMPOSE" == true && ${#BACKUP_RUNNING_SERVICES[@]} -gt 0 ]]; then
     echo "Restarting previously running Docker Compose services..."
-    sudo docker compose -f "$BACKUP_COMPOSE_FILE" up -d "${BACKUP_RUNNING_SERVICES[@]}"
+    sudo docker compose --project-directory "$(dirname "$BACKUP_COMPOSE_FILE")" -f "$BACKUP_COMPOSE_FILE" up -d "${BACKUP_RUNNING_SERVICES[@]}"
     BACKUP_STOPPED_COMPOSE=false
   fi
 }
@@ -113,10 +113,13 @@ cmd_backup() {
   fi
 
   if BACKUP_COMPOSE_FILE="$(find_compose_file "$project_dir")"; then
-    mapfile -t BACKUP_RUNNING_SERVICES < <(sudo docker compose -f "$BACKUP_COMPOSE_FILE" ps --services --filter status=running)
+    mapfile -t BACKUP_RUNNING_SERVICES < <(
+      sudo docker compose --project-directory "$project_dir" -f "$BACKUP_COMPOSE_FILE" ps --services --filter status=running \
+        | sed '/^[[:space:]]*$/d'
+    )
     if [[ ${#BACKUP_RUNNING_SERVICES[@]} -gt 0 ]]; then
       echo "Stopping Docker Compose services before backup: ${BACKUP_RUNNING_SERVICES[*]}"
-      sudo docker compose -f "$BACKUP_COMPOSE_FILE" stop "${BACKUP_RUNNING_SERVICES[@]}"
+      sudo docker compose --project-directory "$project_dir" -f "$BACKUP_COMPOSE_FILE" stop "${BACKUP_RUNNING_SERVICES[@]}"
       BACKUP_STOPPED_COMPOSE=true
     else
       echo "No running Docker Compose services found."
